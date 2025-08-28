@@ -106,6 +106,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
 </html>
 
 <?php
+    } elseif ($tipo == "leitor") {
+        $id_leitor = $_GET['id'];
+        
+        // Fetch reader data
+        $stmt = $pdo->prepare("SELECT * FROM leitores WHERE id_leitor = ?");
+        $stmt->execute([$id_leitor]);
+        $leitor = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$leitor) {
+            die("Leitor não encontrado!");
+        }
+?>
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Leitor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Editar Leitor</h1>
+    
+    <form method="POST">
+        <input type="hidden" name="tipo" value="leitor">
+        <input type="hidden" name="id_leitor" value="<?= htmlspecialchars($leitor['id_leitor']) ?>">
+        
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" value="<?= htmlspecialchars($leitor['nome']) ?>" required><br><br>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="<?= htmlspecialchars($leitor['email']) ?>"><br><br>
+        
+        <label for="telefone">Telefone:</label>
+        <input type="text" id="telefone" name="telefone" value="<?= htmlspecialchars($leitor['telefone']) ?>"><br><br>
+        
+        <button type="submit">Atualizar</button>
+        <a href="index.php">Cancelar</a>
+    </form>
+</body>
+</html>
+
+<?php
     }
     exit;
 }
@@ -130,6 +173,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("UPDATE livros SET titulo=?, genero=?, ano_publicacao=?, id_autor=? WHERE id_livro=?");
         $stmt->execute([$_POST['titulo'], $_POST['genero'], $ano, $_POST['id_autor'], $_POST['id_livro']]);
         echo "Livro atualizado!";
+        header("Location: index.php");
+        exit;
+    }
+
+    if ($tipo == "leitor") {
+        $stmt = $pdo->prepare("UPDATE leitores SET nome=?, email=?, telefone=? WHERE id_leitor=?");
+        $stmt->execute([$_POST['nome'], $_POST['email'], $_POST['telefone'], $_POST['id_leitor']]);
+        echo "Leitor atualizado!";
         header("Location: index.php");
         exit;
     }

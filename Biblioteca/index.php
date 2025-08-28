@@ -64,6 +64,29 @@ if (isset($_GET['delete_livro'])) {
     exit;
 }
 
+// ==== Inserir leitor (CREATE) ====
+if (isset($_POST['add_leitor'])) {
+    $nome = $_POST['nome'];
+    $email = $_POST['email'];
+    $telefone = $_POST['telefone'];
+
+    $sql = "INSERT INTO leitores (nome, email, telefone) VALUES (?, ?, ?)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$nome, $email, $telefone]);
+    header("Location: index.php"); // recarrega página
+    exit;
+}
+
+// ==== Deletar leitor (DELETE) ====
+if (isset($_GET['delete_leitor'])) {
+    $id = $_GET['delete_leitor'];
+    $sql = "DELETE FROM leitores WHERE id_leitor = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$id]);
+    header("Location: index.php");
+    exit;
+}
+
 // ==== Buscar autores (READ) ====
 $stmt = $pdo->query("SELECT * FROM autores");
 $autores = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -71,6 +94,10 @@ $autores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // ==== Buscar livros (READ) ====
 $stmt = $pdo->query("SELECT l.*, a.nome AS autor FROM livros l JOIN autores a ON l.id_autor = a.id_autor");
 $livros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ==== Buscar leitores (READ) ====
+$stmt = $pdo->query("SELECT * FROM leitores");
+$leitores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ==== Buscar todos os autores para o select do formulário de livros ====
 $stmt = $pdo->query("SELECT id_autor, nome FROM autores");
@@ -112,6 +139,17 @@ $autores_select = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endforeach; ?>
             </select>
             <button type="submit" name="add_livro">Adicionar</button>
+        </form>
+    </section>
+
+    <!-- FORMULÁRIO PARA CADASTRAR LEITOR -->
+    <section>
+        <h2>Adicionar Leitor</h2>
+        <form method="POST">
+            <input type="text" name="nome" placeholder="Nome do Leitor" required>
+            <input type="email" name="email" placeholder="Email">
+            <input type="text" name="telefone" placeholder="Telefone">
+            <button type="submit" name="add_leitor">Adicionar</button>
         </form>
     </section>
 
@@ -163,6 +201,32 @@ $autores_select = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td>
                         <a href="update.php?id=<?= $livro['id_livro'] ?>&tipo=livro">Editar</a> | 
                         <a href="?delete_livro=<?= $livro['id_livro'] ?>" onclick="return confirm('Tem certeza?')">Excluir</a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+    </section>
+
+    <!-- LISTA DE LEITORES -->
+    <section>
+        <h2>Lista de Leitores</h2>
+        <table border="1" cellpadding="8" cellspacing="0">
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+            </tr>
+            <?php foreach ($leitores as $leitor): ?>
+                <tr>
+                    <td><?= $leitor['id_leitor'] ?></td>
+                    <td><?= $leitor['nome'] ?></td>
+                    <td><?= $leitor['email'] ?></td>
+                    <td><?= $leitor['telefone'] ?></td>
+                    <td>
+                        <a href="update.php?id=<?= $leitor['id_leitor'] ?>&tipo=leitor">Editar</a> | 
+                        <a href="?delete_leitor=<?= $leitor['id_leitor'] ?>" onclick="return confirm('Tem certeza?')">Excluir</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

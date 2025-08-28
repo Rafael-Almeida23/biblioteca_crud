@@ -87,6 +87,37 @@ if (isset($_GET['delete_leitor'])) {
     exit;
 }
 
+// ==== Inserir empréstimo (CREATE) ====
+if (isset($_POST['add_emprestimo'])) {
+    $id_livro = $_POST['id_livro'];
+    $id_leitor = $_POST['id_leitor'];
+    $data_emprestimo = $_POST['data_emprestimo'];
+    $data_devolucao = $_POST['data_devolucao'] ?? null;
+
+    // Verificar se o livro já está emprestado
+    $check = $pdo->prepare("SELECT COUNT(*) FROM emprestimos WHERE id_livro=? AND data_devolucao IS NULL");
+    $check->execute([$id_livro]);
+    if ($check->fetchColumn() > 0) {
+        die("Este livro já está emprestado!");
+    }
+
+    $sql = "INSERT INTO emprestimos (id_livro, id_leitor, data_emprestimo, data_devolucao) VALUES (?, ?, ?, ?)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$id_livro, $id_leitor, $data_emprestimo, $data_devolucao]);
+    header("Location: index.php"); // recarrega página
+    exit;
+}
+
+// ==== Deletar empréstimo (DELETE) ====
+if (isset($_GET['delete_emprestimo'])) {
+    $id = $_GET['delete_emprestimo'];
+    $sql = "DELETE FROM emprestimos WHERE id_emprestimo = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$id]);
+    header("Location: index.php");
+    exit;
+}
+
 // ==== Buscar autores (READ) ====
 $stmt = $pdo->query("SELECT * FROM autores");
 $autores = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -99,9 +130,21 @@ $livros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt = $pdo->query("SELECT * FROM leitores");
 $leitores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// ==== Buscar empréstimos (READ) ====
+$stmt = $pdo->query("SELECT e.*, l.titulo AS livro, le.nome AS leitor FROM emprestimos e JOIN livros l ON e.id_livro = l.id_livro JOIN leitores le ON e.id_leitor = le.id_leitor");
+$emprestimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // ==== Buscar todos os autores para o select do formulário de livros ====
 $stmt = $pdo->query("SELECT id_autor, nome FROM autores");
 $autores_select = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ==== Buscar todos os livros para o select do formulário de empréstimos ====
+$stmt = $pdo->query("SELECT id_livro, titulo FROM livros");
+$livros_select = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ==== Buscar todos os leitores para o select do formulário de empréstimos ====
+$stmt = $pdo->query("SELECT id_leitor, nome FROM leitores");
+$leitores_select = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -150,6 +193,28 @@ $autores_select = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <input type="email" name="email" placeholder="Email">
             <input type="text" name="telefone" placeholder="Telefone">
             <button type="submit" name="add_leitor">Adicionar</button>
+        </form>
+    </section>
+
+    <!-- FORMULÁRIO PARA CADASTRAR EMPRÉSTIMO -->
+    <section>
+        <h2>Adicionar Empréstimo</h2>
+        <form method="POST">
+            <select name="id_livro" required>
+                <option value="">Selecione um Livro</option>
+                <?php foreach ($livros_select as $livro): ?>
+                    <option value="<?= $livro['id_livro'] ?>"><?= $livro['titulo'] ?></option>
+                <?php endforeach; ?>
+            </select>
+            <select name="id_leitor" required>
+                <option value="">Selecione um Leitor</option>
+                <?php foreach ($leitores_select as $leitor): ?>
+                    <option value="<?= $leitor['id_leitor'] ?>"><?= $leitor['nome'] ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="date" name="data_emprestimo" placeholder="Data de Empréstimo" required>
+            <input type="date" name="data_devolucao" placeholder="Data de Devolução">
+            <button type="submit" name="add_emprestimo">Adicionar</button>
         </form>
     </section>
 
@@ -227,6 +292,34 @@ $autores_select = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td>
                         <a href="update.php?id=<?= $leitor['id_leitor'] ?>&tipo=leitor">Editar</a> | 
                         <a href="?delete_leitor=<?= $leitor['id_leitor'] ?>" onclick="return confirm('Tem certeza?')">Excluir</a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+    </section>
+
+    <!-- LISTA DE EMPRÉSTIMOS -->
+    <section>
+        <h2>Lista de Empréstimos</h2>
+        <table border="1" cellpadding="8" cellspacing="0">
+            <tr>
+                <th>ID</th>
+                <th>Livro</th>
+                <th>Leitor</th>
+                <th>Data Empréstimo</th>
+                <th>Data Devolução</th>
+                <th>Ações</th>
+            </tr>
+            <?php foreach ($emprestimos as $emprestimo): ?>
+                <tr>
+                    <td><?= $emprestimo['id_emprestimo'] ?></td>
+                    <td><?= $emprestimo['livro'] ?></td>
+                    <td><?= $emprestimo['leitor'] ?></td>
+                    <td><?= $emprestimo['data_emprestimo'] ?></td>
+                    <td><?= $emprestimo['data_devolucao'] ?? 'Não devolvido' ?></td>
+                    <td>
+                        <a href="update.php?id=<?= $emprestimo['id_emprestimo'] ?>&tipo=emprestimo">Editar</a> | 
+                        <a href="?delete_emprestimo=<?= $emprestimo['id_emprestimo'] ?>" onclick="return confirm('Tem certeza?')">Excluir</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

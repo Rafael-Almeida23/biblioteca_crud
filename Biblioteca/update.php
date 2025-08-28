@@ -149,6 +149,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
 </html>
 
 <?php
+    } elseif ($tipo == "emprestimo") {
+        $id_emprestimo = $_GET['id'];
+        
+        // Fetch loan data
+        $stmt = $pdo->prepare("SELECT * FROM emprestimos WHERE id_emprestimo = ?");
+        $stmt->execute([$id_emprestimo]);
+        $emprestimo = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$emprestimo) {
+            die("Empréstimo não encontrado!");
+        }
+        
+        // Fetch all books for the select dropdown
+        $stmt = $pdo->query("SELECT id_livro, titulo FROM livros");
+        $livros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Fetch all readers for the select dropdown
+        $stmt = $pdo->query("SELECT id_leitor, nome FROM leitores");
+        $leitores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Empréstimo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Editar Empréstimo</h1>
+    
+    <form method="POST">
+        <input type="hidden" name="tipo" value="emprestimo">
+        <input type="hidden" name="id_emprestimo" value="<?= htmlspecialchars($emprestimo['id_emprestimo']) ?>">
+        
+        <label for="id_livro">Livro:</label>
+        <select id="id_livro" name="id_livro" required>
+            <option value="">Selecione um Livro</option>
+            <?php foreach ($livros as $livro): ?>
+                <option value="<?= $livro['id_livro'] ?>" <?= $livro['id_livro'] == $emprestimo['id_livro'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($livro['titulo']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select><br><br>
+        
+        <label for="id_leitor">Leitor:</label>
+        <select id="id_leitor" name="id_leitor" required>
+            <option value="">Selecione um Leitor</option>
+            <?php foreach ($leitores as $leitor): ?>
+                <option value="<?= $leitor['id_leitor'] ?>" <?= $leitor['id_leitor'] == $emprestimo['id_leitor'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($leitor['nome']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select><br><br>
+        
+        <label for="data_emprestimo">Data de Empréstimo:</label>
+        <input type="date" id="data_emprestimo" name="data_emprestimo" value="<?= htmlspecialchars($emprestimo['data_emprestimo']) ?>" required><br><br>
+        
+        <label for="data_devolucao">Data de Devolução:</label>
+        <input type="date" id="data_devolucao" name="data_devolucao" value="<?= htmlspecialchars($emprestimo['data_devolucao']) ?>"><br><br>
+        
+        <button type="submit">Atualizar</button>
+        <a href="index.php">Cancelar</a>
+    </form>
+</body>
+</html>
+
+<?php
     }
     exit;
 }
@@ -186,17 +254,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if ($tipo == "emprestimo") {
-        $stmt = $pdo->prepare("SELECT data_emprestimo FROM emprestimos WHERE id_emprestimo=?");
-        $stmt->execute([$_POST['id_emprestimo']]);
-        $emprestimo = $stmt->fetch();
-
-        if ($_POST['data_devolucao'] < $emprestimo['data_emprestimo']) {
+        // Verificar se a data de devolução é válida
+        $data_emprestimo = $_POST['data_emprestimo'];
+        $data_devolucao = $_POST['data_devolucao'];
+        
+        if ($data_devolucao && $data_devolucao < $data_emprestimo) {
             die("Data de devolução inválida!");
         }
 
-        $stmt = $pdo->prepare("UPDATE emprestimos SET data_devolucao=? WHERE id_emprestimo=?");
-        $stmt->execute([$_POST['data_devolucao'], $_POST['id_emprestimo']]);
+        $stmt = $pdo->prepare("UPDATE emprestimos SET id_livro=?, id_leitor=?, data_emprestimo=?, data_devolucao=? WHERE id_emprestimo=?");
+        $stmt->execute([$_POST['id_livro'], $_POST['id_leitor'], $_POST['data_emprestimo'], $_POST['data_devolucao'], $_POST['id_emprestimo']]);
         echo "Empréstimo atualizado!";
+        header("Location: index.php");
+        exit;
     }
 }
 ?>

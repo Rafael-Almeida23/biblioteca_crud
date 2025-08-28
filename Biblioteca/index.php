@@ -3,7 +3,7 @@
 $host = "localhost";     
 $dbname = "biblioteca_almeida_ds1";   
 $username = "root";      
-$password = "root";          
+$password = "";          
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
@@ -78,7 +78,7 @@ $autores = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= $autor['nacionalidade'] ?></td>
                     <td><?= $autor['ano_nascimento'] ?></td>
                     <td>
-                        <a href="edit_autor.php?id=<?= $autor['id_autor'] ?>">Editar</a> | 
+                        <a href="update.php?id=<?= $autor['id_autor'] ?>">Editar</a> | 
                         <a href="?delete_autor=<?= $autor['id_autor'] ?>" onclick="return confirm('Tem certeza?')">Excluir</a>
                     </td>
                 </tr>

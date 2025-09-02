@@ -1,5 +1,5 @@
 <?php
-require 'index.php'; // conexão PDO
+require 'index.php'; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tipo = $_POST['tipo'];

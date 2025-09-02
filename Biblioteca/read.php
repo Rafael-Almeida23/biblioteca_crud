@@ -1,7 +1,6 @@
 <?php
 require 'index.php';
 
-// Paginação
 $pagina = $_GET['pagina'] ?? 1;
 $limite = 10;
 $offset = ($pagina - 1) * $limite;

@@ -1,15 +1,12 @@
 <?php
 require 'index.php';
 
-// Handle GET request to display edit form for author or book
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
-    // Verificar o tipo de item a ser editado
     $tipo = $_GET['tipo'] ?? 'autor';
     
     if ($tipo == "autor") {
         $id_autor = $_GET['id'];
         
-        // Fetch author data
         $stmt = $pdo->prepare("SELECT * FROM autores WHERE id_autor = ?");
         $stmt->execute([$id_autor]);
         $autor = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -52,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
     } elseif ($tipo == "livro") {
         $id_livro = $_GET['id'];
         
-        // Fetch book data
         $stmt = $pdo->prepare("SELECT * FROM livros WHERE id_livro = ?");
         $stmt->execute([$id_livro]);
         $livro = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -61,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
             die("Livro não encontrado!");
         }
         
-        // Fetch all authors for the select dropdown
         $stmt = $pdo->query("SELECT id_autor, nome FROM autores");
         $autores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -109,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
     } elseif ($tipo == "leitor") {
         $id_leitor = $_GET['id'];
         
-        // Fetch reader data
         $stmt = $pdo->prepare("SELECT * FROM leitores WHERE id_leitor = ?");
         $stmt->execute([$id_leitor]);
         $leitor = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -152,7 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
     } elseif ($tipo == "emprestimo") {
         $id_emprestimo = $_GET['id'];
         
-        // Fetch loan data
         $stmt = $pdo->prepare("SELECT * FROM emprestimos WHERE id_emprestimo = ?");
         $stmt->execute([$id_emprestimo]);
         $emprestimo = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -161,11 +154,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
             die("Empréstimo não encontrado!");
         }
         
-        // Fetch all books for the select dropdown
         $stmt = $pdo->query("SELECT id_livro, titulo FROM livros");
         $livros = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Fetch all readers for the select dropdown
         $stmt = $pdo->query("SELECT id_leitor, nome FROM leitores");
         $leitores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -254,7 +245,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if ($tipo == "emprestimo") {
-        // Verificar se a data de devolução é válida
         $data_emprestimo = $_POST['data_emprestimo'];
         $data_devolucao = $_POST['data_devolucao'];
         
